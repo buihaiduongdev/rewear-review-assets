@@ -4,8 +4,11 @@ PR: [rewear-be#28](https://github.com/buihaiduongdev/rewear-be/pull/28).
 
 Tested on 2026-11-11 against the local Rewear NestJS server at
 `http://localhost:5001/api/docs`, using **agent-browser** and a real JWT acquired
-through the credentials login endpoint. Application revision:
-[`f953047`](https://github.com/buihaiduongdev/rewear-be/commit/f953047).
+through the credentials login endpoint. The screenshots document application
+revision [`f953047`](https://github.com/buihaiduongdev/rewear-be/commit/f953047).
+The subsequent CI/test setup revision is
+[`330cb14`](https://github.com/buihaiduongdev/rewear-be/commit/330cb14); it preserves
+the application behavior shown in the screenshots.
 
 Requests below were executed using Swagger's **Try it out → Execute** controls.
 The backend connected to the Docker PostgreSQL 16 development database. A
@@ -25,48 +28,61 @@ No existing user records were edited.
 ## Verification
 
 - `pnpm check`: lint, formatting, TypeScript and Nest build passed.
-- `pnpm build`: passed separately.
-- `pnpm test --runInBand`: **18 suites, 128 tests passed**.
-- Real database E2E plus HTTP contract suite: **6 suites, 108 tests passed**.
-  The database suites covered product lifecycle, cart, checkout, pickup locations,
-  and marketplace seeding. The HTTP contract suite uses mocked persistence;
-  database suites use dedicated PostgreSQL databases and fixture identity guards.
+- `pnpm test --runInBand`: **26 suites, 243 tests passed, zero skipped**.
+- [GitHub Actions run 43000166332](https://github.com/buihaiduongdev/rewear-be/actions/runs/43000166332): passed with the same **26 suites and 243 tests**, confirmed from the CI log.
+- Focused unit run: **19 suites, 134 tests passed**.
+- Focused integration run: **7 suites, 109 tests passed**. The database suites
+  cover product lifecycle, cart, checkout, pickup locations, marketplace seeding,
+  and schema isolation. The HTTP contract suite uses mocked persistence;
+  database suites use PostgreSQL and fixture identity guards.
+- All seven integration suites also passed with two Jest workers sharing one
+  database. The isolation regression verifies that a schema reset and teardown
+  leave another suite's schema intact.
+- Missing DB configuration and an unavailable PostgreSQL server were each
+  checked through a real Jest run: both failed, with zero skipped tests.
+- `pnpm test:seed`: all four marketplace seed tests passed.
 - `docker compose config --quiet` and `git diff --check`: passed.
-- Category regression was observed failing with the old `Object.assign` mock,
-  then passing after the mock skipped undefined values. SSL schema tests were
-  also observed failing before configuration support was added.
-- Direct PostgreSQL assertions verified the browser results were persisted,
-  entity IDs and ownership remained unchanged, and the rejected ID payload did
-  not update the category.
-- All synthetic browser fixtures, their refresh tokens, addresses, memberships,
-  shop and pickup location were removed after verification. No fixture records
-  remained in the checked tables.
+- The temporary test database had no integration schemas remaining after runs.
+- Direct PostgreSQL assertions verified that the earlier browser results were
+  persisted, IDs and ownership remained unchanged, and the rejected ID payload
+  did not update the category. All synthetic browser fixtures were cleaned up.
 
-## Local setup
+## CI and local setup
 
-Start the database from `rewear-be`:
+CI now creates a disposable PostgreSQL 16 service with the database
+`rewear_test`, provides the standard `DB_*` environment variables, and runs
+both unit and integration tests through `pnpm test --runInBand`. The previous
+CI setup did not provide test database URLs: it ran 29 HTTP contract tests while
+skipping 79 PostgreSQL tests. Those skip gates and per-suite URL variables have
+been removed.
 
-```bash
-docker compose up -d --wait db
-```
+Development Compose now creates only `rewear`; there is no test database init
+SQL. Every database suite automatically creates and drops its own random schema
+inside the explicitly configured test database. Tests synchronize entities;
+this repository's test setup does not use migrations.
 
-Use `DB_SSL=false` with the local database. The committed `.env.example` shows
-the local connection defaults. The running backend in this session used
-`PORT=5001`; port 3001 belonged to another project and was not used for proofs.
-
-Compose initializes `rewear` and `rewear_pickup_test` on a fresh volume.
-For the full E2E run, dedicated local databases `rewear_product_test`,
-`rewear_cart_test`, `rewear_checkout_test` and `rewear_seed_test` were also
-created. The suites create and clean their own schemas. Run with:
+For local tests, use a disposable server separate from the dev volume:
 
 ```bash
-PICKUP_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/rewear_pickup_test \
-PRODUCT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/rewear_product_test \
-CART_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/rewear_cart_test \
-CHECKOUT_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/rewear_checkout_test \
-SEED_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/rewear_seed_test \
-  pnpm test:e2e --runInBand --testTimeout=30000
+docker run --rm -d --name rewear-test-db \
+  -e POSTGRES_USER=rewear_test -e POSTGRES_PASSWORD=rewear_test \
+  -e POSTGRES_DB=rewear_test -p 127.0.0.1:55432:5432 \
+  postgres:16-alpine
+
+# Run after PostgreSQL is ready.
+DB_HOST=127.0.0.1 DB_PORT=55432 DB_USERNAME=rewear_test \
+DB_PASSWORD=rewear_test DB_NAME=rewear_test DB_SSL=false \
+  pnpm test --runInBand
+
+docker stop rewear-test-db
 ```
+
+Tests read explicit `DB_*` variables, require a local `rewear*_test` database,
+and do not fall back to `.env` or `DATABASE_URL`. Unit tests can run without
+PostgreSQL using `pnpm test:unit --runInBand`.
+
+The Swagger browser session used `http://localhost:5001/api/docs`; port 3001
+belonged to another project and was not used for Rewear proofs.
 
 ## Screenshot handling and scope
 
