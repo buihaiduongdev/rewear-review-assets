@@ -9,7 +9,7 @@ revision [`f953047`](https://github.com/buihaiduongdev/rewear-be/commit/f953047)
 The subsequent CI/test setup revision is
 [`330cb14`](https://github.com/buihaiduongdev/rewear-be/commit/330cb14); it preserves
 the application behavior shown in the screenshots. The later test simplification
-is [`472dacb`](https://github.com/buihaiduongdev/rewear-be/commit/472dacb).
+is [`18f455b`](https://github.com/buihaiduongdev/rewear-be/commit/18f455b).
 
 Requests below were executed using Swagger's **Try it out → Execute** controls.
 The backend connected to the Docker PostgreSQL 16 development database. A
@@ -29,17 +29,18 @@ No existing user records were edited.
 ## Verification
 
 - `pnpm check`: lint, formatting, TypeScript and Nest build passed.
-- `pnpm test`: **26 suites, 243 tests passed, zero skipped**.
-- [GitHub Actions run 43148462584](https://github.com/buihaiduongdev/rewear-be/actions/runs/43148462584): passed with the same **26 suites and 243 tests**, confirmed from the CI log.
+- `pnpm test`: **25 suites, 242 tests passed, zero skipped**.
+- [GitHub Actions run 43151757718](https://github.com/buihaiduongdev/rewear-be/actions/runs/43151757718): passed with the same **25 suites and 242 tests**, confirmed from the CI log.
 - Focused unit run: **19 suites, 134 tests passed**.
-- Focused integration run: **7 suites, 109 tests passed**. The database suites
+- Focused integration run: **6 suites, 108 tests passed**. The database suites
   cover product lifecycle, cart, checkout, pickup locations, marketplace seeding,
-  and shared-schema reset. The HTTP contract suite uses mocked persistence;
+  and the HTTP contract suite uses mocked persistence;
   database suites use PostgreSQL and fixture identity guards.
 - The database suites use one `public` schema in the disposable test database.
   Each suite drops and recreates its entity tables before running; the full Jest
-  command runs suites sequentially. A regression test verifies the shared
-  schema is clean when the next suite starts.
+  command runs suites sequentially. `test/integration/README.md` summarizes the
+  feature coverage. There is no standalone helper test; all 6 integration
+  suites check Rewear feature behavior.
 - Missing DB configuration and an unavailable PostgreSQL server were each
   checked through a real Jest run: both failed, with zero skipped tests.
 - `pnpm test:seed`: all four marketplace seed tests passed.
