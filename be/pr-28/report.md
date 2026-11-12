@@ -9,7 +9,7 @@ revision [`f953047`](https://github.com/buihaiduongdev/rewear-be/commit/f953047)
 The subsequent CI/test setup revision is
 [`330cb14`](https://github.com/buihaiduongdev/rewear-be/commit/330cb14); it preserves
 the application behavior shown in the screenshots. The later test simplification
-is [`060dec8`](https://github.com/buihaiduongdev/rewear-be/commit/060dec8).
+is [`ab80297`](https://github.com/buihaiduongdev/rewear-be/commit/ab80297).
 
 Requests below were executed using Swagger's **Try it out → Execute** controls.
 The backend connected to the Docker PostgreSQL 16 development database. A
@@ -29,15 +29,16 @@ No existing user records were edited.
 ## Verification
 
 - `pnpm check`: lint, formatting, TypeScript and Nest build passed.
-- `pnpm test`: **25 suites, 242 tests passed, zero skipped**.
-- [GitHub Actions run 43159360964](https://github.com/buihaiduongdev/rewear-be/actions/runs/43159360964): passed with the same **25 suites and 242 tests**, confirmed from the CI log.
-- Focused unit run: **19 suites, 134 tests passed**.
-- Focused integration run: **1 suite, 4 tests passed**. It directly tests
-  marketplace seed behavior against PostgreSQL.
-- Focused HTTP E2E run: **5 suites, 104 tests passed**. These suites exercise
-  cart, checkout, pickup location, product lifecycle and request validation.
-- The integration suite uses `rewear_test.public` and resets entity tables before
-  running. HTTP suites are in `test/e2e`; folder READMEs summarize their scope.
+- `pnpm test`: **21 suites, 135 tests passed, zero skipped**.
+- [GitHub Actions run 43167250348](https://github.com/buihaiduongdev/rewear-be/actions/runs/43167250348): **21 suites and 135 tests passed**, confirmed from the CI log.
+- Focused unit run: **18 suites, 128 tests passed**.
+- Focused integration run: **2 suites, 6 tests passed**. Tests call services
+  directly and verify product review/checkout, pickup locations and marketplace
+  seeding against PostgreSQL.
+- Focused full-app E2E run: **1 suite, 1 test passed**. It boots `AppModule` and
+  exercises product creation, image confirmation, approval, cart and checkout.
+- The test helper uses `rewear_test.public` and resets entity tables before each
+  database suite. Folder READMEs summarize the smaller test layout.
 - Missing DB configuration and an unavailable PostgreSQL server were each
   checked through a real Jest run: both failed, with zero skipped tests.
 - `pnpm test:seed`: all four marketplace seed tests passed.
@@ -51,14 +52,14 @@ No existing user records were edited.
 
 CI now creates a disposable PostgreSQL 16 service with the database
 `rewear_test`, provides the standard `DB_*` environment variables, and runs
-unit, direct database integration and HTTP E2E tests through `pnpm test`, which
+unit, direct database integration and one full-app HTTP E2E flow through `pnpm test`, which
 defaults to sequential execution. The previous
 CI setup did not provide test database URLs: it ran 29 HTTP contract tests while
 skipping 79 PostgreSQL tests. Those skip gates and per-suite URL variables have
 been removed.
 
 Development Compose now creates only `rewear`; there is no test database init
-SQL. The integration suite uses `rewear_test.public`; the helper resets its
+SQL. Integration and E2E suites use `rewear_test.public`; the helper resets its
 entity tables with TypeORM `synchronize(true)`. Because this reset is
 destructive, only point tests at the disposable test database. This repository's
 test setup does not use migrations.
