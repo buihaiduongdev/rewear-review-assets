@@ -18,14 +18,21 @@ synthetic active admin fixture was inserted locally for authentication; the
 category, shop and address fixtures were then created through the real API.
 No existing user records were edited.
 
-| Case                                                                                                                             | Actual result                                                                       | Screenshot                                            |
-| -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Category partial update: `name: null` is omitted by validation, while `isActive: false` and `requiredMeasurements: []` are saved | HTTP 200; original name/slug preserved, false and empty array persisted             | [View](screenshots/01-category-partial-update.png)    |
-| Shop update: empty description, omitted status                                                                                   | HTTP 200; description becomes null and status stays ACTIVE                          | [View](screenshots/02-shop-empty-description.png)     |
-| Address update: nullable label, omitted recipient, canonical administrative names and default flag                               | HTTP 200; label cleared, recipient retained, canonical names refreshed, default set | [View](screenshots/03-address-canonical-and-null.png) |
-| Personal pickup location first save                                                                                              | HTTP 200; location created with canonical names and country VN                      | [View](screenshots/04-pickup-create.png)              |
-| Personal pickup location second save                                                                                             | HTTP 200; same location ID updated, canonical names refreshed, country remains VN   | [View](screenshots/05-pickup-update.png)              |
-| Category body attempts to set entity ID                                                                                          | HTTP 400; strict request schema rejects the extra field                             | [View](screenshots/06-reject-entity-id.png)           |
+### Happy path — all requests succeed
+
+| Case | Actual result | Screenshot |
+| --- | --- | --- |
+| Category partial update | HTTP 200; name/slug retained, `false` and `[]` saved | [View](screenshots/01-category-partial-update.png) |
+| Shop update | HTTP 200; empty description becomes null, status retained | [View](screenshots/02-shop-empty-description.png) |
+| Address update | HTTP 200; nullable label cleared, recipient retained, administrative names canonicalized | [View](screenshots/03-address-canonical-and-null.png) |
+| Pickup location create | HTTP 200; created with canonical names and country VN | [View](screenshots/04-pickup-create.png) |
+| Pickup location update | HTTP 200; same ID updated, canonical names refreshed | [View](screenshots/05-pickup-update.png) |
+
+### Edge case — invalid input is rejected
+
+| Case | Actual result | Screenshot |
+| --- | --- | --- |
+| Category body attempts to set entity ID | HTTP 400; strict request schema rejects the extra field | [View](screenshots/06-reject-entity-id.png) |
 
 ## Verification
 
