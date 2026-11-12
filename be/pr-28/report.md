@@ -8,8 +8,9 @@ through the credentials login endpoint. The screenshots document application
 revision [`f953047`](https://github.com/buihaiduongdev/rewear-be/commit/f953047).
 The subsequent CI/test setup revision is
 [`330cb14`](https://github.com/buihaiduongdev/rewear-be/commit/330cb14); it preserves
-the application behavior shown in the screenshots. The later test simplification
-is [`58adeba`](https://github.com/buihaiduongdev/rewear-be/commit/58adeba).
+the application behavior shown in the screenshots. Test simplification and
+concise test documentation are in
+[`4438b69`](https://github.com/buihaiduongdev/rewear-be/commit/4438b69).
 
 Requests below were executed using Swagger's **Try it out → Execute** controls.
 The backend connected to the Docker PostgreSQL 16 development database. A
@@ -30,7 +31,7 @@ No existing user records were edited.
 
 - `pnpm check`: lint, formatting, TypeScript and Nest build passed.
 - `pnpm test`: **21 suites, 135 tests passed, zero skipped**.
-- [GitHub Actions run 43170420045](https://github.com/buihaiduongdev/rewear-be/actions/runs/43170420045): **21 suites and 135 tests passed**, confirmed from the CI log.
+- [GitHub Actions run 43172406224](https://github.com/buihaiduongdev/rewear-be/actions/runs/43172406224): **21 suites and 135 tests passed**.
 - Focused unit run: **18 suites, 128 tests passed**.
 - Focused integration run: **2 suites, 6 tests passed**. Tests call services
   directly and verify product review/checkout, pickup locations and marketplace
@@ -38,7 +39,7 @@ No existing user records were edited.
 - Focused full-app E2E run: **1 suite, 1 test passed**. It boots `AppModule` and
   exercises product creation, image confirmation, approval, cart and checkout.
 - The test helper uses `rewear_test.public` and resets entity tables before each
-  database suite. Folder READMEs summarize the smaller test layout.
+  database suite. The root README lists the unit, integration and E2E commands.
 - Missing DB configuration and an unavailable PostgreSQL server were each
   checked through a real Jest run: both failed, with zero skipped tests.
 - `pnpm test:seed`: all four marketplace seed tests passed.
